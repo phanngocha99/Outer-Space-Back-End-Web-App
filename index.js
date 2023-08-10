@@ -16,7 +16,7 @@ const app = express();
 app.use(cors({
     credentials: true,
     method: ["POST", "GET"],
-    origin: ["https://outer-space-psi.vercel.app/"]
+    origin: ["https://outer-space-psi.vercel.app"] //no end slash
 })); //if set credentials, cors must have more information 
 app.use(express.json());
 app.use(cookieParser());

@@ -21,7 +21,7 @@ var secret = bcrypt.genSaltSync(10);
 const app = express();
 app.use(cors({
     credentials: true,
-    method: ["POST", "GET"],
+    method: ["POST", "GET", "PUT"],
     origin: ["https://outer-space-psi.vercel.app"] //no end slash
 })); //if set credentials, cors must have more information 
 app.use(express.json());

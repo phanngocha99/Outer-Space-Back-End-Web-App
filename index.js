@@ -327,7 +327,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
         app.get('/', (req, res) => {
             res.setHeader('Content-Type', 'text/html');
             res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-            res.send('hey');
+            res.send('hello-outer-space-api');
         })
 
         app.get('/ping', (req, res) => {

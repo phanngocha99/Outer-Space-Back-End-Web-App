@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 
@@ -9,9 +8,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 
-var formidable = require('formidable');
-const path = require('path');
-// const multer = require('multer');
+const multer = require('multer');
 const fs = require('fs');
 const Post = require('./models/Post');
 const News = require('./models/News');
@@ -28,7 +25,7 @@ app.use(cors({
 })); //if set credentials, cors must have more information 
 app.use(express.json());
 app.use(cookieParser());
-// const uploadMiddleware = multer({ dest: 'uploads/' })
+const uploadMiddleware = multer({ dest: 'uploads/' })
 app.use('/uploads', express.static(__dirname + '/uploads'));
 
 mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryWrites=true&w=majority')
@@ -77,191 +74,73 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
             res.cookie('token', '').json('ok');
         });
 
-        app.post('/post', async (req, res) => {
+        app.post('/post', uploadMiddleware.single('file'), async (req, res) => {
+            const { originalname, path } = req.file;
+            const parts = originalname.split('.');
+            const ext = parts[parts.length - 1];
+            newPath = path + '.' + ext;
+            fs.renameSync(path, newPath);
 
-            const form = new formidable.IncomingForm();
-            const uploadFolder = path.join(__dirname, "uploads");
-            form.maxFileSize = 50 * 1024 * 1024; // 5MB
-            form.uploadDir = uploadFolder;
-            console.log(form);
-
-            form.parse(req, async (err, fields, files) => {
-                console.log(fields);
-                console.log(files);
-
-                if (err) {
-                    console.log("Error parsing the files");
-                    reject(err);
-                    // return res.status(400).json({
-                    //     status: "Fail",
-                    //     message: "There was an error parsing the files",
-                    //     error: err,
-                    // });
-                }
-                resolve({ fields, files });
-
-
-
-
-                if (Boolean(files.file) === false) {
-                    console.log("[Error] There was no file");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was no file",
-                        error: err,
-                    });
-                }
-
-                else {
-                    const originalname = files.file[0].originalFilename
-                    const path = files.file[0].filepath;
-                    const pathParts = path.split('\\');
-                    const pathExt = pathParts[pathParts.length - 2] + "\\" + pathParts[pathParts.length - 1];
-                    const parts = originalname.split('.');
-                    const ext = parts[parts.length - 1];
-                    newPath = pathExt + '.' + ext;
-                    fs.renameSync(path, newPath);
-                }
-
-                const title = fields.title[0];
-                const summary = fields.summary[0];
-                const content = fields.content[0];
-                const { token } = req.cookies;
-                jwt.verify(token, secret, {}, async (err, info) => {
-                    if (err) throw err;
-                    const postDoc = await Post.create({
-                        title,
-                        summary,
-                        content,
-                        cover: newPath,
-                        author: info.id,
-                    });
-                    res.json(postDoc);
+            const { token } = req.cookies;
+            jwt.verify(token, secret, {}, async (err, info) => {
+                if (err) throw err;
+                const { title, summary, content } = req.body;
+                const postDoc = await Post.create({
+                    title,
+                    summary,
+                    content,
+                    cover: newPath,
+                    author: info.id,
                 });
-
+                res.json(postDoc);
             });
+
         });
 
-        app.post('/news', async (req, res) => {
+        app.post('/news', uploadMiddleware.single('file'), async (req, res) => {
+            const { originalname, path } = req.file;
+            const parts = originalname.split('.');
+            const ext = parts[parts.length - 1];
+            newPath = path + '.' + ext;
+            fs.renameSync(path, newPath);
 
-            const form = new formidable.IncomingForm();
-            const uploadFolder = path.join(__dirname, "uploads");
-            form.maxFileSize = 50 * 1024 * 1024; // 5MB
-            form.uploadDir = uploadFolder;
-            console.log(form);
-
-            form.parse(req, async (err, fields, files) => {
-                console.log(fields);
-                console.log(files);
-
-                if (err) {
-                    console.log("Error parsing the files");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was an error parsing the files",
-                        error: err,
-                    });
-                }
-
-
-                if (Boolean(files.file) === false) {
-                    console.log("[Error] There was no file");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was no file",
-                        error: err,
-                    });
-                }
-
-                else {
-                    const originalname = files.file[0].originalFilename
-                    const path = files.file[0].filepath;
-                    const pathParts = path.split('\\');
-                    const pathExt = pathParts[pathParts.length - 2] + "\\" + pathParts[pathParts.length - 1];
-                    const parts = originalname.split('.');
-                    const ext = parts[parts.length - 1];
-                    newPath = pathExt + '.' + ext;
-                    fs.renameSync(path, newPath);
-                }
-
-                const title = fields.title[0];
-                const summary = fields.summary[0];
-                const content = fields.content[0];
-                const { token } = req.cookies;
-                jwt.verify(token, secret, {}, async (err, info) => {
-                    if (err) throw err;
-                    const postDoc = await News.create({
-                        title,
-                        summary,
-                        content,
-                        cover: newPath,
-                        author: info.id,
-                    });
-                    res.json(postDoc);
+            const { token } = req.cookies;
+            jwt.verify(token, secret, {}, async (err, info) => {
+                if (err) throw err;
+                const { title, summary, content } = req.body;
+                const newsDoc = await News.create({
+                    title,
+                    summary,
+                    content,
+                    cover: newPath,
+                    author: info.id,
                 });
-
+                res.json(newsDoc);
             });
+
         });
 
-        app.post('/event', async (req, res) => {
+        app.post('/event', uploadMiddleware.single('file'), async (req, res) => {
+            const { originalname, path } = req.file;
+            const parts = originalname.split('.');
+            const ext = parts[parts.length - 1];
+            newPath = path + '.' + ext;
+            fs.renameSync(path, newPath);
 
-            const form = new formidable.IncomingForm();
-            const uploadFolder = path.join(__dirname, "uploads");
-            form.maxFileSize = 50 * 1024 * 1024; // 5MB
-            form.uploadDir = uploadFolder;
-            console.log(form);
-
-            form.parse(req, async (err, fields, files) => {
-                console.log(fields);
-                console.log(files);
-
-                if (err) {
-                    console.log("Error parsing the files");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was an error parsing the files",
-                        error: err,
-                    });
-                }
-
-
-                if (Boolean(files.file) === false) {
-                    console.log("[Error] There was no file");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was no file",
-                        error: err,
-                    });
-                }
-
-                else {
-                    const originalname = files.file[0].originalFilename
-                    const path = files.file[0].filepath;
-                    const pathParts = path.split('\\');
-                    const pathExt = pathParts[pathParts.length - 2] + "\\" + pathParts[pathParts.length - 1];
-                    const parts = originalname.split('.');
-                    const ext = parts[parts.length - 1];
-                    newPath = pathExt + '.' + ext;
-                    fs.renameSync(path, newPath);
-                }
-
-                const title = fields.title[0];
-                const summary = fields.summary[0];
-                const content = fields.content[0];
-                const { token } = req.cookies;
-                jwt.verify(token, secret, {}, async (err, info) => {
-                    if (err) throw err;
-                    const eventDoc = await Event.create({
-                        title,
-                        summary,
-                        content,
-                        cover: newPath,
-                        author: info.id,
-                    });
-                    res.json(eventDoc);
+            const { token } = req.cookies;
+            jwt.verify(token, secret, {}, async (err, info) => {
+                if (err) throw err;
+                const { title, summary, content } = req.body;
+                const eventDoc = await Event.create({
+                    title,
+                    summary,
+                    content,
+                    cover: newPath,
+                    author: info.id,
                 });
-
+                res.json(eventDoc);
             });
+
         });
 
         app.get('/post', async (req, res) => {
@@ -309,248 +188,137 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
             res.json(newsDoc);
         })
 
-        app.put('/post', async (req, res) => {
+        app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
             let newPath = null;
-            const form = new formidable.IncomingForm();
-            const uploadFolder = path.join(__dirname, "uploads");
-            form.maxFileSize = 50 * 1024 * 1024; // 5MB
-            form.uploadDir = uploadFolder;
-            console.log(form);
+            if (req.file) {
+                const { originalname, path } = req.file;
+                const parts = originalname.split('.');
+                const ext = parts[parts.length - 1];
+                newPath = path + '.' + ext;
+                fs.renameSync(path, newPath);
+            }
 
-            form.parse(req, async (err, fields, files) => {
-                console.log(fields);
-                console.log(files);
+            console.log("[INFO]1");
 
-                if (err) {
-                    console.log("Error parsing the files");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was an error parsing the files",
-                        error: err,
-                    });
+            const { token } = req.cookies;
+            jwt.verify(token, secret, {}, async (err, info) => {
+                if (err) throw err;
+                const { id, title, summary, content } = req.body;
+                const postDoc = await Post.findById(id);
+                console.log("[INFO] 2");
+                console.log("[INFO]3" + postDoc.author + 'abc' + info.id);
+                const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
+                if (!isAuthor) {
+                    return res.status(400).json('you are not the author');
                 }
 
+                console.log("[INFO]4")
 
-                if (Boolean(files.file) === false) {
-                    console.log("[Error] There was no file");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was no file",
-                        error: err,
-                    });
-                }
-
-                else {
-                    const originalname = files.file[0].originalFilename
-                    const path = files.file[0].filepath;
-                    const pathParts = path.split('\\');
-                    const pathExt = pathParts[pathParts.length - 2] + "\\" + pathParts[pathParts.length - 1];
-                    const parts = originalname.split('.');
-                    const ext = parts[parts.length - 1];
-                    newPath = pathExt + '.' + ext;
-                    fs.renameSync(path, newPath);
-                }
-
-                const title = fields.title[0];
-                const summary = fields.summary[0];
-                const content = fields.content[0];
-                const id = fields.id[0];
-
-                const { token } = req.cookies;
-                jwt.verify(token, secret, {}, async (err, info) => {
-                    if (err) throw err;
-                    console.log(id);
-                    const postDoc = await Post.findById(id);
-                    console.log("[INFO] 2");
-                    console.log("[INFO]3" + postDoc.author + 'abc' + info.id);
-                    const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
-                    if (!isAuthor) {
-                        return res.status(400).json('you are not the author');
+                await postDoc.updateOne({
+                    title,
+                    summary,
+                    content,
+                    cover: newPath ? newPath : postDoc.cover,
+                }, function (err, result) {
+                    if (err) {
+                        console.log(err)
+                    } else {
+                        console.log("Result :", result)
                     }
-
-                    console.log("[INFO]4")
-
-                    await postDoc.updateOne({
-                        title,
-                        summary,
-                        content,
-                        cover: newPath,
-                    }, function (err, result) {
-                        if (err) {
-                            console.log(err)
-                        } else {
-                            console.log("Result :", result)
-                        }
-                    });
-
-                    console.log("[INFO]5");
-                    res.json(postDoc);
                 });
 
+                console.log("[INFO]5");
+                res.json(postDoc);
             });
 
         });
 
-        app.put('/news', async (req, res) => {
+        app.put('/event', uploadMiddleware.single('file'), async (req, res) => {
             let newPath = null;
-            const form = new formidable.IncomingForm();
-            const uploadFolder = path.join(__dirname, "uploads");
-            form.maxFileSize = 50 * 1024 * 1024; // 5MB
-            form.uploadDir = uploadFolder;
-            console.log(form);
+            if (req.file) {
+                const { originalname, path } = req.file;
+                const parts = originalname.split('.');
+                const ext = parts[parts.length - 1];
+                newPath = path + '.' + ext;
+                fs.renameSync(path, newPath);
+            }
 
-            form.parse(req, async (err, fields, files) => {
-                console.log(fields);
-                console.log(files);
+            console.log("[INFO]1");
 
-                if (err) {
-                    console.log("Error parsing the files");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was an error parsing the files",
-                        error: err,
-                    });
+            const { token } = req.cookies;
+            jwt.verify(token, secret, {}, async (err, info) => {
+                if (err) throw err;
+                const { id, title, summary, content } = req.body;
+                const eventDoc = await Event.findById(id);
+                console.log("[INFO] 2");
+                console.log("[INFO]3" + eventDoc.author + 'abc' + info.id);
+                const isAuthor = JSON.stringify(eventDoc.author) === JSON.stringify(info.id);
+                if (!isAuthor) {
+                    return res.status(400).json('you are not the author');
                 }
 
+                console.log("[INFO]4")
 
-                if (Boolean(files.file) === false) {
-                    console.log("[Error] There was no file");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was no file",
-                        error: err,
-                    });
-                }
-
-                else {
-                    const originalname = files.file[0].originalFilename
-                    const path = files.file[0].filepath;
-                    const pathParts = path.split('\\');
-                    const pathExt = pathParts[pathParts.length - 2] + "\\" + pathParts[pathParts.length - 1];
-                    const parts = originalname.split('.');
-                    const ext = parts[parts.length - 1];
-                    newPath = pathExt + '.' + ext;
-                    fs.renameSync(path, newPath);
-                }
-
-                const title = fields.title[0];
-                const summary = fields.summary[0];
-                const content = fields.content[0];
-                const id = fields.id[0];
-
-                const { token } = req.cookies;
-                jwt.verify(token, secret, {}, async (err, info) => {
-                    if (err) throw err;
-                    console.log(id);
-                    const newsDoc = await News.findById(id);
-                    console.log("[INFO] 2");
-                    console.log("[INFO]3" + newsDoc.author + 'abc' + info.id);
-                    const isAuthor = JSON.stringify(newsDoc.author) === JSON.stringify(info.id);
-                    if (!isAuthor) {
-                        return res.status(400).json('you are not the author');
+                await eventDoc.updateOne({
+                    title,
+                    summary,
+                    content,
+                    cover: newPath ? newPath : eventDoc.cover,
+                }, function (err, result) {
+                    if (err) {
+                        console.log(err)
+                    } else {
+                        console.log("Result :", result)
                     }
-
-                    console.log("[INFO]4")
-
-                    await newsDoc.updateOne({
-                        title,
-                        summary,
-                        content,
-                        cover: newPath,
-                    }, function (err, result) {
-                        if (err) {
-                            console.log(err)
-                        } else {
-                            console.log("Result :", result)
-                        }
-                    });
-
-                    console.log("[INFO]5");
-                    res.json(newsDoc);
                 });
 
+                console.log("[INFO]5");
+                res.json(eventDoc);
             });
 
         });
 
-        app.put('/event', async (req, res) => {
+        app.put('/news', uploadMiddleware.single('file'), async (req, res) => {
             let newPath = null;
-            const form = new formidable.IncomingForm();
-            const uploadFolder = path.join(__dirname, "uploads");
-            form.maxFileSize = 50 * 1024 * 1024; // 5MB
-            form.uploadDir = uploadFolder;
-            console.log(form);
+            if (req.file) {
+                const { originalname, path } = req.file;
+                const parts = originalname.split('.');
+                const ext = parts[parts.length - 1];
+                newPath = path + '.' + ext;
+                fs.renameSync(path, newPath);
+            }
 
-            form.parse(req, async (err, fields, files) => {
-                console.log(fields);
-                console.log(files);
+            console.log("[INFO]1");
 
-                if (err) {
-                    console.log("Error parsing the files");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was an error parsing the files",
-                        error: err,
-                    });
+            const { token } = req.cookies;
+            jwt.verify(token, secret, {}, async (err, info) => {
+                if (err) throw err;
+                const { id, title, summary, content } = req.body;
+                const newsDoc = await News.findById(id);
+                console.log("[INFO] 2");
+                console.log("[INFO]3" + newsDoc.author + 'abc' + info.id);
+                const isAuthor = JSON.stringify(newsDoc.author) === JSON.stringify(info.id);
+                if (!isAuthor) {
+                    return res.status(400).json('you are not the author');
                 }
 
+                console.log("[INFO]4")
 
-                if (Boolean(files.file) === false) {
-                    console.log("[Error] There was no file");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was no file",
-                        error: err,
-                    });
-                }
-
-                else {
-                    const originalname = files.file[0].originalFilename
-                    const path = files.file[0].filepath;
-                    const pathParts = path.split('\\');
-                    const pathExt = pathParts[pathParts.length - 2] + "\\" + pathParts[pathParts.length - 1];
-                    const parts = originalname.split('.');
-                    const ext = parts[parts.length - 1];
-                    newPath = pathExt + '.' + ext;
-                    fs.renameSync(path, newPath);
-                }
-
-                const title = fields.title[0];
-                const summary = fields.summary[0];
-                const content = fields.content[0];
-                const id = fields.id[0];
-
-                const { token } = req.cookies;
-                jwt.verify(token, secret, {}, async (err, info) => {
-                    if (err) throw err;
-                    console.log(id);
-                    const eventDoc = await Event.findById(id);
-                    console.log("[INFO] 2");
-                    console.log("[INFO]3" + eventDoc.author + 'abc' + info.id);
-                    const isAuthor = JSON.stringify(eventDoc.author) === JSON.stringify(info.id);
-                    if (!isAuthor) {
-                        return res.status(400).json('you are not the author');
+                await newsDoc.updateOne({
+                    title,
+                    summary,
+                    content,
+                    cover: newPath ? newPath : newsDoc.cover,
+                }, function (err, result) {
+                    if (err) {
+                        console.log(err)
+                    } else {
+                        console.log("Result :", result)
                     }
-
-                    console.log("[INFO]4")
-
-                    await eventDoc.updateOne({
-                        title,
-                        summary,
-                        content,
-                        cover: newPath,
-                    }, function (err, result) {
-                        if (err) {
-                            console.log(err)
-                        } else {
-                            console.log("Result :", result)
-                        }
-                    });
-
-                    console.log("[INFO]5");
-                    res.json(eventDoc);
                 });
 
+                console.log("[INFO]5");
+                res.json(newsDoc);
             });
 
         });
@@ -578,5 +346,3 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
             }
         })
     })
-
-

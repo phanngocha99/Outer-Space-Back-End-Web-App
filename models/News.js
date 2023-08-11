@@ -11,6 +11,7 @@ const PostSchema = new Schema({
     timestamps: true, //update at - create at
 });
 
+
 const PostModel = model('News', PostSchema);
 
 module.exports = PostModel;

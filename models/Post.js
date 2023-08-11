@@ -11,6 +11,8 @@ const PostSchema = new Schema({
     timestamps: true, //update at - create at
 });
 
+
+
 const PostModel = model('Post', PostSchema);
 
 module.exports = PostModel;

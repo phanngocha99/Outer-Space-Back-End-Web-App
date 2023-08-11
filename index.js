@@ -91,12 +91,16 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
 
                 if (err) {
                     console.log("Error parsing the files");
-                    return res.status(400).json({
-                        status: "Fail",
-                        message: "There was an error parsing the files",
-                        error: err,
-                    });
+                    reject(err);
+                    // return res.status(400).json({
+                    //     status: "Fail",
+                    //     message: "There was an error parsing the files",
+                    //     error: err,
+                    // });
                 }
+                resolve({ fields, files });
+
+
 
 
                 if (Boolean(files.file) === false) {

@@ -1,0 +1,99 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "*.js",
+            "use": "@now/node-server"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/"
+        },
+        {
+            "src": "/register",
+            "dest": "/index.js",
+            "methods": [
+                "POST"
+            ]
+        },
+        {
+            "src": "/login",
+            "dest": "/index.js",
+            "methods": [
+                "POST"
+            ]
+        },
+        {
+            "src": "/profile",
+            "dest": "/index.js",
+            "methods": [
+                "GET"
+            ]
+        },
+        {
+            "src": "/post",
+            "dest": "/index.js",
+            "methods": [
+                "POST"
+            ]
+        },
+        {
+            "src": "/post",
+            "dest": "/index.js",
+            "methods": [
+                "GET"
+            ]
+        },
+        {
+            "src": "/post",
+            "dest": "/index.js",
+            "methods": [
+                "PUT"
+            ]
+        },
+        {
+            "src": "/news",
+            "dest": "/index.js",
+            "methods": [
+                "POST"
+            ]
+        },
+        {
+            "src": "/news",
+            "dest": "/index.js",
+            "methods": [
+                "GET"
+            ]
+        },
+        {
+            "src": "/news",
+            "dest": "/index.js",
+            "methods": [
+                "PUT"
+            ]
+        },
+        {
+            "src": "/event",
+            "dest": "/index.js",
+            "methods": [
+                "POST"
+            ]
+        },
+        {
+            "src": "/event",
+            "dest": "/index.js",
+            "methods": [
+                "GET"
+            ]
+        },
+        {
+            "src": "/event",
+            "dest": "/index.js",
+            "methods": [
+                "PUT"
+            ]
+        }
+    ]
+}

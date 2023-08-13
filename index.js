@@ -8,8 +8,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 
-// const multer = require('multer');
-// const fs = require('fs');
+const multer = require('multer');
+const fs = require('fs');
 const Post = require('./models/Post');
 const News = require('./models/News');
 const Event = require('./models/Event');
@@ -25,9 +25,8 @@ app.use(cors({
 })); //if set credentials, cors must have more information 
 app.use(express.json());
 app.use(cookieParser());
-// const uploadMiddleware = multer({ dest: 'uploads/' })
-// app.use('/uploads', express.static(__dirname + '/uploads'));
-
+const uploadMiddleware = multer({ dest: 'uploads/' })
+app.use('/uploads', express.static(__dirname + '/uploads'));
 
 mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryWrites=true&w=majority')
     .then(() => {
@@ -75,7 +74,13 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
             res.cookie('token', '').json('ok');
         });
 
-        app.post('/post', async (req, res) => {
+        app.post('/post', uploadMiddleware.single('file'), async (req, res) => {
+            const { originalname, path } = req.file;
+            const parts = originalname.split('.');
+            const ext = parts[parts.length - 1];
+            newPath = path + '.' + ext;
+            fs.renameSync(path, newPath);
+
             const { token } = req.cookies;
             jwt.verify(token, secret, {}, async (err, info) => {
                 if (err) throw err;
@@ -84,6 +89,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                     title,
                     summary,
                     content,
+                    cover: newPath,
                     author: info.id,
                 });
                 res.json(postDoc);
@@ -91,22 +97,22 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
 
         });
 
-        app.post('/news', async (req, res) => { //uploadMiddleware.single('file'), cover: newPath
-            // const { originalname, path } = req.file;
-            // const parts = originalname.split('.');
-            // const ext = parts[parts.length - 1];
-            // newPath = path + '.' + ext;
-            // fs.renameSync(path, newPath);
+        app.post('/news', uploadMiddleware.single('file'), async (req, res) => {
+            const { originalname, path } = req.file;
+            const parts = originalname.split('.');
+            const ext = parts[parts.length - 1];
+            newPath = path + '.' + ext;
+            fs.renameSync(path, newPath);
 
             const { token } = req.cookies;
             jwt.verify(token, secret, {}, async (err, info) => {
                 if (err) throw err;
                 const { title, summary, content } = req.body;
-                console.log("[INFO]: " + req.body + req.body.title + summary + content);
                 const newsDoc = await News.create({
                     title,
                     summary,
                     content,
+                    cover: newPath,
                     author: info.id,
                 });
                 res.json(newsDoc);
@@ -114,7 +120,12 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
 
         });
 
-        app.post('/event', async (req, res) => {
+        app.post('/event', uploadMiddleware.single('file'), async (req, res) => {
+            const { originalname, path } = req.file;
+            const parts = originalname.split('.');
+            const ext = parts[parts.length - 1];
+            newPath = path + '.' + ext;
+            fs.renameSync(path, newPath);
 
             const { token } = req.cookies;
             jwt.verify(token, secret, {}, async (err, info) => {
@@ -124,6 +135,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                     title,
                     summary,
                     content,
+                    cover: newPath,
                     author: info.id,
                 });
                 res.json(eventDoc);
@@ -176,22 +188,22 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
             res.json(newsDoc);
         })
 
-        app.put('/post', async (req, res) => {
-            // let newPath = null;
-            // if (req.file) {
-            //     const { originalname, path } = req.file;
-            //     const parts = originalname.split('.');
-            //     const ext = parts[parts.length - 1];
-            //     newPath = path + '.' + ext;
-            //     fs.renameSync(path, newPath);
+        app.put('/post', uploadMiddleware.single('file'), async (req, res) => {
+            let newPath = null;
+            if (req.file) {
+                const { originalname, path } = req.file;
+                const parts = originalname.split('.');
+                const ext = parts[parts.length - 1];
+                newPath = path + '.' + ext;
+                fs.renameSync(path, newPath);
+            }
 
-
+            console.log("[INFO]1");
 
             const { token } = req.cookies;
             jwt.verify(token, secret, {}, async (err, info) => {
                 if (err) throw err;
                 const { id, title, summary, content } = req.body;
-                console.log("[INFO]: " + req.body);
                 const postDoc = await Post.findById(id);
                 console.log("[INFO] 2");
                 console.log("[INFO]3" + postDoc.author + 'abc' + info.id);
@@ -206,6 +218,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                     title,
                     summary,
                     content,
+                    cover: newPath ? newPath : postDoc.cover,
                 }, function (err, result) {
                     if (err) {
                         console.log(err)
@@ -217,9 +230,19 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                 console.log("[INFO]5");
                 res.json(postDoc);
             });
+
         });
 
-        app.put('/event', async (req, res) => {
+        app.put('/event', uploadMiddleware.single('file'), async (req, res) => {
+            let newPath = null;
+            if (req.file) {
+                const { originalname, path } = req.file;
+                const parts = originalname.split('.');
+                const ext = parts[parts.length - 1];
+                newPath = path + '.' + ext;
+                fs.renameSync(path, newPath);
+            }
+
             console.log("[INFO]1");
 
             const { token } = req.cookies;
@@ -240,6 +263,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                     title,
                     summary,
                     content,
+                    cover: newPath ? newPath : eventDoc.cover,
                 }, function (err, result) {
                     if (err) {
                         console.log(err)
@@ -254,9 +278,18 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
 
         });
 
-        app.put('/news', async (req, res) => {
+        app.put('/news', uploadMiddleware.single('file'), async (req, res) => {
+            let newPath = null;
+            if (req.file) {
+                const { originalname, path } = req.file;
+                const parts = originalname.split('.');
+                const ext = parts[parts.length - 1];
+                newPath = path + '.' + ext;
+                fs.renameSync(path, newPath);
+            }
 
             console.log("[INFO]1");
+
             const { token } = req.cookies;
             jwt.verify(token, secret, {}, async (err, info) => {
                 if (err) throw err;
@@ -269,10 +302,13 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                     return res.status(400).json('you are not the author');
                 }
 
+                console.log("[INFO]4")
+
                 await newsDoc.updateOne({
                     title,
                     summary,
                     content,
+                    cover: newPath ? newPath : newsDoc.cover,
                 }, function (err, result) {
                     if (err) {
                         console.log(err)
@@ -293,23 +329,20 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
             res.send('hello-outer-space-api');
         })
 
+        app.get('/ping', (req, res) => {
+            res.setHeader('Content-Type', 'text/html');
+            res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
+            res.send('pong');
+        })
 
+        const port = process.env.PORT || 8000
 
-    });
-
-app.get('/ping', (req, res) => {
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-    res.send('pong');
-})
-
-const port = process.env.PORT || 8000
-
-app.listen(port, (err, res) => {
-    if (err) {
-        console.log(err)
-        return res.status(500).send(err.message)
-    } else {
-        console.log('[INFO] Server Running on port:', port)
-    }
-})
+        app.listen(port, (err, res) => {
+            if (err) {
+                console.log(err)
+                return res.status(500).send(err.message)
+            } else {
+                console.log('[INFO] Server Running on port:', port)
+            }
+        })
+    })

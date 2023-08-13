@@ -148,7 +148,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                 await Post.find()
                     .populate('author', ['username'])
                     .sort({ createdAt: -1 })
-                    .limit(4)
+                    .limit(20)
             );
         });
 
@@ -157,7 +157,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                 await News.find()
                     .populate('author', ['username'])
                     .sort({ createdAt: -1 })
-                    .limit(4)
+                    .limit(20)
             );
         });
 
@@ -166,7 +166,7 @@ mongoose.connect('mongodb+srv://lunah:lunah@cluster0.ytcukbu.mongodb.net/?retryW
                 await Event.find()
                     .populate('author', ['username'])
                     .sort({ createdAt: -1 })
-                    .limit(4)
+                    .limit(20)
             );
         });
 

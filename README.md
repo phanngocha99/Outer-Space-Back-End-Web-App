@@ -1,6 +1,6 @@
 # outer-space
 
-🌸 [HTML-CSS-React] An API server for Astronomy Outer-Space Website
+🌸 [ExpressJS-Mongoose] An API server for Astronomy Outer-Space Website
 
 📌 https://github.com/HiImHa/outer-space-api/
 

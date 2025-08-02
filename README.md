@@ -2,18 +2,6 @@
 
 🌸 [ExpressJS-Mongoose] An API server for Astronomy Outer-Space Website
 
-📌 https://github.com/HiImHa/outer-space-api/
-
-## Related Link
-
-📌 GitHub repository: 
-- Frondend: https://github.com/HiImHa/outer-space
-- BackEnd: https://github.com/HiImHa/outer-space-api 
-
-📌 Vercel deployment:  
-- Frondend: https://outer-space-psi.vercel.app/ 
-- BackEnd: https://outer-space-api.vercel.app/
-
 ## Features
 🌟This website first will navigate you to **Hompage**:
 - Show information of OuterSpace **About** 
